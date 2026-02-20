@@ -8,7 +8,6 @@ This package allows you to make HTTPS requests and inspect the TLS handshake to 
 
 - Detects the negotiated TLS key exchange group (including ML-KEM / Kyber-based PQC groups)
 - Captures the cipher suite used in the TLS session
-- Works with Node.js 22+ (TLS 1.2 via `getEphemeralKeyInfo`) and Node.js 24+ (TLS 1.3 via OpenSSL trace parsing)
 
 ## Installation
 
@@ -79,7 +78,7 @@ interface RequestResult {
 
 ## Requirements
 
-- Node.js >= 18
+- Node.js >= 20
 - Linux (uses `libc.so.6` for fd-level stderr redirection)
 
 ## License
