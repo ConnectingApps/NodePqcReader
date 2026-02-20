@@ -1,25 +1,33 @@
-FROM node:22
+FROM ubuntu:24.04
+
+ENV NVM_DIR=/root/.nvm
+ENV NODE_VERSION_BUILD=22
+ENV NODE_VERSION_RUN_1=22
+ENV NODE_VERSION_RUN_2=24
+
+RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+# Install nvm and the required Node versions
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash && \
+    . "$NVM_DIR/nvm.sh" && \
+    nvm install $NODE_VERSION_BUILD && \
+    nvm install $NODE_VERSION_RUN_2
 
 WORKDIR /app
 
 # 1. Build pqc-tracer first (its dist/ is gitignored, so we must build it here)
 COPY pqc-tracer ./pqc-tracer
 WORKDIR /app/pqc-tracer
-RUN npm install && npm run build
+RUN . "$NVM_DIR/nvm.sh" && nvm use $NODE_VERSION_BUILD && npm install && npm run build
 
 # 2. Build the main project
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY src ./src
 COPY tsconfig.json ./
-RUN npm install && npm run build
+RUN . "$NVM_DIR/nvm.sh" && nvm use $NODE_VERSION_BUILD && npm install && npm run build
 
-# 3. Install 'n' and pre-cache Node 22 and Node 24
-RUN npm install -g n && n 22 && n 24
+COPY run.sh ./
+RUN chmod +x run.sh
 
-CMD echo "=== Running with Node 22 ===" && \
-    n exec 22 node -p "process.versions.openssl" && \
-    n exec 22 node dist/index.js && \
-    echo "=== Running with Node 24 ===" && \
-    n exec 24 node -p "process.versions.openssl" && \
-    n exec 24 node dist/index.js
+CMD ["./run.sh"]
