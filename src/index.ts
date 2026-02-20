@@ -1,7 +1,5 @@
 import * as https from 'https';
 import * as tls from 'tls';
-import * as net from 'net';
-import koffi from 'koffi';
 
 interface TlsTrace {
   group: string;
@@ -31,7 +29,7 @@ function getTlsTraceFromSocket(socket: tls.TLSSocket): TlsTrace | null {
 }
 
 function makeHttpsRequest(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     let tlsTrace: TlsTrace | null = null;
     let statusCode: number | undefined;
     let responsePreview: string | undefined;
@@ -84,8 +82,4 @@ function makeHttpsRequest(): Promise<void> {
   });
 }
 
-async function main(): Promise<void> {
-  await makeHttpsRequest();
-}
-
-main();
+makeHttpsRequest().catch(console.error);
