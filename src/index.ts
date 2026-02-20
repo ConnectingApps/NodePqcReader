@@ -1,4 +1,4 @@
-import { executeRequest } from './requestExecutor';
+import { executeRequest } from 'pqc-tracer';
 
 const request = {
   hostname: 'www.google.com',

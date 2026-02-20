@@ -26,6 +26,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "koffi": "^2.15.1"
+    "koffi": "^2.15.1",
+    "pqc-tracer": "file:pqc-tracer"
   }
 }
