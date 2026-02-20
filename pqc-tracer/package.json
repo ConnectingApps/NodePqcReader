@@ -16,8 +16,11 @@
     "https",
     "tracer"
   ],
-  "author": "",
+  "author": "Daan Acohen",
   "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ConnectingApps/NodePqcReader.git"
