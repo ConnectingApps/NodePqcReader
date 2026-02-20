@@ -1,6 +1,6 @@
 {
   "name": "pqc-tracer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable TLS Post-Quantum Cryptography tracer for outgoing HTTPS requests in Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
