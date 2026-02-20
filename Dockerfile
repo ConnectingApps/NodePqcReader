@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
 
 ENV NVM_DIR=/root/.nvm
 
+SHELL ["/bin/bash", "-c"]
+
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
     && . "$NVM_DIR/nvm.sh" \
     && nvm install 22 \
@@ -24,9 +26,9 @@ COPY package.json package-lock.json ./
 COPY src ./src
 COPY tsconfig.json ./
 
-RUN bash -c '. "$NVM_DIR/nvm.sh" && nvm use 22 && npm install && npm run build'
+RUN . "$NVM_DIR/nvm.sh" && nvm use 22 && npm install && npm run build
 
-CMD bash -c '. "$NVM_DIR/nvm.sh" \
+CMD . "$NVM_DIR/nvm.sh" \
     && echo "=== Running with Node 22 ===" \
     && nvm use 22 \
     && node -p "process.versions.openssl" \
@@ -34,4 +36,4 @@ CMD bash -c '. "$NVM_DIR/nvm.sh" \
     && echo "=== Running with Node 24 ===" \
     && nvm use 24 \
     && node -p "process.versions.openssl" \
-    && node dist/index.js'
+    && node dist/index.js
