@@ -81,6 +81,15 @@ interface RequestResult {
 - Node.js >= 20
 - Linux (uses `libc.so.6` for fd-level stderr redirection)
 
+> ⚠️ **Warning:** This library is currently **Linux only**.
+
+## About the Author
+
+This library was made by **Daan Acohen**.
+
+- 💼 Connect with me on [LinkedIn](https://www.linkedin.com/in/daanacohen)
+- 🔒 Check out [Quantum Safe Audit](https://www.quantumsafeaudit.com/) to verify if your browser and web server are quantum safe.
+
 ## License
 
 GPL-3.0
