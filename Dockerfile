@@ -24,12 +24,9 @@ COPY package.json package-lock.json ./
 COPY src ./src
 COPY tsconfig.json ./
 
-RUN . "$NVM_DIR/nvm.sh" \
-    && nvm use 22 \
-    && npm install \
-    && npm run build
+RUN bash -c '. "$NVM_DIR/nvm.sh" && nvm use 22 && npm install && npm run build'
 
-CMD . "$NVM_DIR/nvm.sh" \
+CMD bash -c '. "$NVM_DIR/nvm.sh" \
     && echo "=== Running with Node 22 ===" \
     && nvm use 22 \
     && node -p "process.versions.openssl" \
@@ -37,4 +34,4 @@ CMD . "$NVM_DIR/nvm.sh" \
     && echo "=== Running with Node 24 ===" \
     && nvm use 24 \
     && node -p "process.versions.openssl" \
-    && node dist/index.js
+    && node dist/index.js'
