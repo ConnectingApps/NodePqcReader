@@ -1,23 +1,4 @@
-FROM ubuntu:24.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
-    build-essential \
-    python3 \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV NVM_DIR=/root/.nvm
-
-SHELL ["/bin/bash", "-c"]
-
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
-    && . "$NVM_DIR/nvm.sh" \
-    && nvm install 22 \
-    && nvm install 24
+FROM node:22
 
 WORKDIR /app
 
@@ -26,14 +7,15 @@ COPY package.json package-lock.json ./
 COPY src ./src
 COPY tsconfig.json ./
 
-RUN . "$NVM_DIR/nvm.sh" && nvm use 22 && npm install && npm run build
+# Build with Node 22 (already provided by the base image — zero setup)
+RUN npm install && npm run build
 
-CMD . "$NVM_DIR/nvm.sh" \
-    && echo "=== Running with Node 22 ===" \
-    && nvm use 22 \
-    && node -p "process.versions.openssl" \
-    && node dist/index.js \
-    && echo "=== Running with Node 24 ===" \
-    && nvm use 24 \
-    && node -p "process.versions.openssl" \
-    && node dist/index.js
+# Install 'n' and pre-cache Node 22 and Node 24
+RUN npm install -g n && n 22 && n 24
+
+CMD echo "=== Running with Node 22 ===" && \
+    n exec 22 node -p "process.versions.openssl" && \
+    n exec 22 node dist/index.js && \
+    echo "=== Running with Node 24 ===" && \
+    n exec 24 node -p "process.versions.openssl" && \
+    n exec 24 node dist/index.js
