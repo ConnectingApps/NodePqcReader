@@ -30,42 +30,6 @@ function getTlsTraceFromSocket(socket: tls.TLSSocket): TlsTrace | null {
   }
 }
 
-// Attempt to get the negotiated group NID via libssl.so.3 FFI using the
-// SSL* pointer. In Node.js v22, the SSL* handle is not exposed to JavaScript,
-// so this function demonstrates the FFI binding and falls back gracefully.
-function getNegotiatedGroupViaFfi(sslPtr: Buffer | null): string {
-  if (process.platform !== 'linux') {
-    return 'Non-Linux';
-  }
-
-  if (!sslPtr) {
-    return 'Err: Handle Not Found';
-  }
-
-  try {
-    const libssl = koffi.load('libssl.so.3');
-
-    const SSL_ctrl = libssl.func('SSL_ctrl', 'long', ['pointer', 'int', 'long', 'pointer']);
-    const SSL_group_to_name = libssl.func('SSL_group_to_name', 'const char *', ['pointer', 'int']);
-
-    const SSL_CTRL_GET_NEGOTIATED_GROUP = 134;
-    const groupId = SSL_ctrl(sslPtr, SSL_CTRL_GET_NEGOTIATED_GROUP, 0, null) as number;
-
-    if (groupId === 0) {
-      return 'Unknown (GroupID=0)';
-    }
-
-    const groupName = SSL_group_to_name(sslPtr, groupId) as string | null;
-    if (!groupName) {
-      return `Decode Error (GroupID=${groupId})`;
-    }
-
-    return groupName;
-  } catch (err: any) {
-    return `Err: ${err.message}`;
-  }
-}
-
 function makeHttpsRequest(): Promise<void> {
   return new Promise((resolve, reject) => {
     let tlsTrace: TlsTrace | null = null;
