@@ -6,13 +6,14 @@ import koffi from 'koffi';
 interface TlsTrace {
   group: string;
   cipherSuite: string;
+  statusCode: number | undefined;
 }
 
 // Attempt to get the negotiated TLS group name via OpenSSL FFI.
 // In Node.js, the SSL* pointer is not directly accessible from JS,
 // so we use getEphemeralKeyInfo() to obtain the group name, which
 // internally calls SSL_get_negotiated_group via the TLSWrap binding.
-function getTlsTraceFromSocket(socket: tls.TLSSocket): TlsTrace | null {
+function getTlsTraceFromSocket(socket: tls.TLSSocket): Omit<TlsTrace, 'statusCode'> | null {
   try {
     const cipherInfo = socket.getCipher();
     const cipherSuite = cipherInfo ? cipherInfo.standardName ?? cipherInfo.name : 'Unknown';
@@ -48,7 +49,10 @@ function makeHttpsRequest(): Promise<void> {
       const socket = res.socket as tls.TLSSocket;
 
       // Extract TLS trace from the established TLS socket
-      tlsTrace = getTlsTraceFromSocket(socket);
+      const trace = getTlsTraceFromSocket(socket);
+      if (trace) {
+        tlsTrace = { ...trace, statusCode: res.statusCode };
+      }
 
       // Consume and discard the response body
       res.on('data', () => {});
@@ -57,6 +61,7 @@ function makeHttpsRequest(): Promise<void> {
         if (tlsTrace) {
           console.log(`Negotiated Group: ${tlsTrace.group}`);
           console.log(`Cipher Suite: ${tlsTrace.cipherSuite}`);
+          console.log(`HTTP Status: ${tlsTrace.statusCode}`);
         } else {
           console.log('TLS Trace not found.');
         }
