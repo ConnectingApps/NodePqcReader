@@ -6,14 +6,13 @@ import koffi from 'koffi';
 interface TlsTrace {
   group: string;
   cipherSuite: string;
-  statusCode: number | undefined;
 }
 
 // Attempt to get the negotiated TLS group name via OpenSSL FFI.
 // In Node.js, the SSL* pointer is not directly accessible from JS,
 // so we use getEphemeralKeyInfo() to obtain the group name, which
 // internally calls SSL_get_negotiated_group via the TLSWrap binding.
-function getTlsTraceFromSocket(socket: tls.TLSSocket): Omit<TlsTrace, 'statusCode'> | null {
+function getTlsTraceFromSocket(socket: tls.TLSSocket): TlsTrace | null {
   try {
     const cipherInfo = socket.getCipher();
     const cipherSuite = cipherInfo ? cipherInfo.standardName ?? cipherInfo.name : 'Unknown';
@@ -34,6 +33,8 @@ function getTlsTraceFromSocket(socket: tls.TLSSocket): Omit<TlsTrace, 'statusCod
 function makeHttpsRequest(): Promise<void> {
   return new Promise((resolve, reject) => {
     let tlsTrace: TlsTrace | null = null;
+    let statusCode: number | undefined;
+    let responsePreview: string | undefined;
 
     const options: https.RequestOptions = {
       hostname: 'www.google.com',
@@ -49,19 +50,24 @@ function makeHttpsRequest(): Promise<void> {
       const socket = res.socket as tls.TLSSocket;
 
       // Extract TLS trace from the established TLS socket
-      const trace = getTlsTraceFromSocket(socket);
-      if (trace) {
-        tlsTrace = { ...trace, statusCode: res.statusCode };
-      }
+      tlsTrace = getTlsTraceFromSocket(socket);
+      statusCode = res.statusCode;
 
-      // Consume and discard the response body
-      res.on('data', () => {});
+      // Collect the first 10 characters of the response body
+      let responseBodyPreview = '';
+      res.on('data', (chunk: Buffer | string) => {
+        if (responseBodyPreview.length < 10) {
+          responseBodyPreview += chunk.toString();
+        }
+      });
 
       res.on('end', () => {
+        responsePreview = responseBodyPreview.slice(0, 10);
         if (tlsTrace) {
           console.log(`Negotiated Group: ${tlsTrace.group}`);
           console.log(`Cipher Suite: ${tlsTrace.cipherSuite}`);
-          console.log(`HTTP Status: ${tlsTrace.statusCode}`);
+          console.log(`HTTP Status: ${statusCode}`);
+          console.log(`Response Preview: ${responsePreview}`);
         } else {
           console.log('TLS Trace not found.');
         }
